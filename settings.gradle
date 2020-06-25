@@ -1,0 +1,3 @@
+rootProject.name='PhotoSaver'
+include ':app'
+include ':photosaverlibrary'
