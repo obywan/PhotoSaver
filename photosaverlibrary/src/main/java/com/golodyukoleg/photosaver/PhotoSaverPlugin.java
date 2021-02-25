@@ -19,6 +19,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+// not currently used
 interface INativePhotoSave
 {
     String saveSync(String p);
@@ -28,22 +29,28 @@ interface INativePhotoSave
 public class PhotoSaverPlugin implements INativePhotoSave {
 
     private static final String TAG = "NativePhotoSave";
+
+    //name of the GameObject in Unity that will receive callback
     private static final String GAME_OBJECT_NAME = "PluginBridge";
 
     private Activity activity;
 
+
+    // plugin initialization with unity activity to have the context later on
     public PhotoSaverPlugin(Activity activity)
     {
         this.activity = activity;
         Log.d(TAG, "Initialized PhotoSaverPlugin class");
     }
 
+    //not currently used
     @Override
     public String saveSync(String p) {
         galleryAddPic(p);
         return "scanned sync";
     }
 
+    //not currently used
     @Override
     public void saveAsync(String p) {
         try {
@@ -56,11 +63,15 @@ public class PhotoSaverPlugin implements INativePhotoSave {
         }
     }
 
+
+    //the method that is called from Unity
     private void saveImage(byte[] data, String filename, String album) throws IOException {
         boolean saved;
         OutputStream fos;
         String path = "";
 
+
+        //if we are on Android 10 or later we use ContentResolver to initialize OutputStream
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             ContentResolver resolver = activity.getContentResolver();
             ContentValues contentValues = new ContentValues();
@@ -69,6 +80,8 @@ public class PhotoSaverPlugin implements INativePhotoSave {
             contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, "DCIM/" + album);
             Uri imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
             fos = resolver.openOutputStream(imageUri);
+
+            //remember image path to use it later in the gallery scanning process
             path = imageUri.getPath();
         } else {
 
@@ -80,28 +93,39 @@ public class PhotoSaverPlugin implements INativePhotoSave {
                 return;
             }
 
+            //otherwise we do it the old way
+
+            //put together dir path
             String imagesDir = Environment.getExternalStoragePublicDirectory(
                     Environment.DIRECTORY_DCIM).toString() + File.separator + album;
 
+
             File file = new File(imagesDir);
 
+            //create directory
             if (!file.exists()) {
                 file.mkdir();
             }
 
+            //create file
             File image = new File(imagesDir, filename + ".jpg");
             path = image.getPath();
+
+            //initialize OutputStream
             fos = new FileOutputStream(image);
 
         }
+
+        //if all good then write and close stream
         if(fos != null) {
             fos.write(data);
 
-//        saved = bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
             fos.flush();
             fos.close();
         }
 
+        //try to force gallery to refresh itself to show new image
+        //report the result to Unity
         try {
             Log.d(TAG, "scanning to CameraRoll: " + path);
             // Assuming these calculations results required async methods
