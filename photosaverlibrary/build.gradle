@@ -26,7 +26,7 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    compileOnly files('D:/UnityInstals/2019.3.12f1/Editor/Data/PlaybackEngines/AndroidPlayer/Variations/il2cpp/Release/Classes/classes.jar')
+    compileOnly files('D:/UnityVersions/2019.4.1f1/Editor/Data/PlaybackEngines/AndroidPlayer/Variations/il2cpp/Release/Classes/classes.jar')
     api 'androidx.appcompat:appcompat:1.1.0'
 
     implementation 'androidx.appcompat:appcompat:1.1.0'

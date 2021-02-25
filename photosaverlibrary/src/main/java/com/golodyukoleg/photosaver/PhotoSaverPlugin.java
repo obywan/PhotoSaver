@@ -1,9 +1,11 @@
 package com.golodyukoleg.photosaver;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
@@ -69,6 +71,15 @@ public class PhotoSaverPlugin implements INativePhotoSave {
             fos = resolver.openOutputStream(imageUri);
             path = imageUri.getPath();
         } else {
+
+            if(activity.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) !=
+                    PackageManager.PERMISSION_GRANTED) {
+                Log.d("Permissions", "Need to request WRITE_EXTERNAL_STORAGE");
+                activity.requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        1);
+                return;
+            }
+
             String imagesDir = Environment.getExternalStoragePublicDirectory(
                     Environment.DIRECTORY_DCIM).toString() + File.separator + album;
 
@@ -83,11 +94,13 @@ public class PhotoSaverPlugin implements INativePhotoSave {
             fos = new FileOutputStream(image);
 
         }
-        fos.write(data);
+        if(fos != null) {
+            fos.write(data);
 
 //        saved = bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
-        fos.flush();
-        fos.close();
+            fos.flush();
+            fos.close();
+        }
 
         try {
             Log.d(TAG, "scanning to CameraRoll: " + path);
